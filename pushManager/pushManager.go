@@ -23,6 +23,10 @@ type PushManager struct {
 	userAgent string
 }
 
+func applyBaseParameters(map[string]string) {
+
+}
+
 func (p *PushManager) PushToAll(msg_type, msg, deploy_status string) {
 
 }
