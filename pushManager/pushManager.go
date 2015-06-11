@@ -2,7 +2,27 @@ package pushManager
 
 import (
 	"Go_Baidu_Push/config"
+	"Go_Baidu_Push/util"
+	"bytes"
+	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
+
+	"strconv"
+	"time"
 )
+
+type PushError struct {
+	ErrorCode string
+	ErrorMsg  string
+}
+
+func (e PushError) Error() string {
+	return "Error code " + e.ErrorCode + " " + e.ErrorMsg
+}
 
 var _pm *PushManager
 
@@ -23,88 +43,130 @@ type PushManager struct {
 	userAgent string
 }
 
-func (p *PushManager) applyBaseParameters(parameters map[string]string) {
+func (p PushManager) applyBaseParameters(parameters map[string]string) {
 	parameters["apikey"] = p.apiKey
 	parameters["timestamp"] = strconv.FormatInt(time.Now().Unix(), 10)
 }
 
-func (p *PushManager) PushToAll(msg_type, msg, deploy_status string, parameters *map[string]string) {
-	parameters["device_type"] = "3"
-	parameters["msg_type"] = msg_type
+func (p PushManager) PushToAll(device_type, msg_type, msg, deploy_status string, parameters map[string]string) (resp map[string]interface{}, err error) {
+	targetURL := "http://api.tuisong.baidu.com/rest/3.0/push/all"
+	dic := make(map[string]string)
+	dic["device_type"] = device_type
+	dic["msg_type"] = msg_type
+	p.applyBaseParameters(dic)
+	dic["msg"] = util.BuildMessage(msg, parameters, device_type)
+	dic["sign"] = util.GenerateSignature("POST", targetURL, p.secretKey, dic)
+
+	form := url.Values{}
+	for k, v := range dic {
+		form.Set(k, v)
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", targetURL, bytes.NewBufferString(form.Encode()))
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	req.Header.Add("User-Agent", p.userAgent)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
+	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+
+	response, err := client.Do(req)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	defer response.Body.Close()
+	bd, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	log.Println(string(bd))
+	err = json.Unmarshal(bd, &resp)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	log.Println(resp)
+	if resp["error_code"] != nil {
+		err = errors.New("Push failed")
+	}
+	return
 }
 
-func (p *PushManager) PushToSingle(channel_id, msg_type, msg, deploy_status string, parameters *map[string]string) {
-
-}
-
-func (p *PushManager) PushToTag(tag, msg_type, msg, deploy_status string, parameters *map[string]string) {
-
-}
-
-func (p *PushManager) PushToBatchDevices(channel_ids []string, msg_type, msg, topicId string, parameters *map[string]string) {
-
-}
-
-func (p *PushManager) QueryMsgStatus(msgIds []string) {
-
-}
-
-func (p *PushManager) QueryTimerRecords(timerId, start, limit, rangeStart, rangeEnd string) {
-
-}
-
-func (p *PushManager) QueryTopicRecords(topicId, start, limit, rangeStart, rangeEnd string) {
-
-}
-
-func (p *PushManager) QueryTagDetails(tag string) {
-
-}
-
-func (p *PushManager) QueryTags(start, limit string) {
-
-}
-
-func (p *PushManager) CreateTag(tag string) {
-
-}
-
-func (p *PushManager) DeleteTag(tag string) {
-
-}
-
-func (p *PushManager) AddDevicesToTag(tag string, channelIds []string) {
-
-}
-
-func (p *PushManager) DeleteDevicesFromTag(tag string, channelIds []string) {
-
-}
-
-func (p *PushManager) QueryNumberOfDevicesInTag(tag string) {
+func (p PushManager) PushToSingle(device_type, channel_id, msg_type, msg, deploy_status string, parameters map[string]string) {
 
 }
 
-func (p *PushManager) QueryTimerDetails(timerId string) {
+func (p PushManager) PushToTag(device_type, tag, msg_type, msg, deploy_status string, parameters map[string]string) {
 
 }
 
-func (p *PushManager) QueryTimerList(start, limit string) {
+func (p PushManager) PushToBatchDevices(device_type, channel_ids []string, msg_type, msg, topicId string, parameters map[string]string) {
 
 }
 
-func (p *PushManager) CancelTimerTask(timerId string) {
+func (p PushManager) QueryMsgStatus(msgIds []string) {
 
 }
 
-func (p *PushManager) QueryTopicList(start, limit string) {
+func (p PushManager) QueryTimerRecords(timerId, start, limit, rangeStart, rangeEnd string) {
 
 }
 
-func (p *PushManager) QueryDeviceStatistic() {
+func (p PushManager) QueryTopicRecords(topicId, start, limit, rangeStart, rangeEnd string) {
 
 }
 
-func (p *PushManager) QueryTopicStatistic(topicId string) {
+func (p PushManager) QueryTagDetails(tag string) {
+
+}
+
+func (p PushManager) QueryTags(start, limit string) {
+
+}
+
+func (p PushManager) CreateTag(tag string) {
+
+}
+
+func (p PushManager) DeleteTag(tag string) {
+
+}
+
+func (p PushManager) AddDevicesToTag(tag string, channelIds []string) {
+
+}
+
+func (p PushManager) DeleteDevicesFromTag(tag string, channelIds []string) {
+
+}
+
+func (p PushManager) QueryNumberOfDevicesInTag(tag string) {
+
+}
+
+func (p PushManager) QueryTimerDetails(timerId string) {
+
+}
+
+func (p PushManager) QueryTimerList(start, limit string) {
+
+}
+
+func (p PushManager) CancelTimerTask(timerId string) {
+
+}
+
+func (p PushManager) QueryTopicList(start, limit string) {
+
+}
+
+func (p PushManager) QueryDeviceStatistic() {
+
+}
+
+func (p PushManager) QueryTopicStatistic(topicId string) {
 
 }
