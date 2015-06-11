@@ -22,7 +22,6 @@ func SharedPushManager() *PushManager {
 		_pm = &PushManager{
 			secretKey: config.SECRET_KEY,
 			apiKey:    config.API_KEY,
-			userAgent: config.USERAGENT,
 		}
 	}
 	return _pm
@@ -31,7 +30,6 @@ func SharedPushManager() *PushManager {
 type PushManager struct {
 	secretKey string
 	apiKey    string
-	userAgent string
 }
 
 func (p *PushManager) applyBaseParameters(parameters map[string]string) {
@@ -45,8 +43,8 @@ func (p *PushManager) PushToAll(device_type, msg_type, msg, deploy_status string
 	dic["device_type"] = device_type
 	dic["msg_type"] = msg_type
 	dic["deploy_status"] = deploy_status
-	p.applyBaseParameters(dic)
 	dic["msg"] = util.BuildMessage(msg, parameters, device_type)
+	p.applyBaseParameters(dic)
 	dic["sign"] = util.GenerateSignature("POST", targetURL, p.secretKey, dic)
 	return postURL(targetURL, dic)
 }
@@ -54,18 +52,28 @@ func (p *PushManager) PushToAll(device_type, msg_type, msg, deploy_status string
 func (p *PushManager) PushToSingle(device_type, channel_id, msg_type, msg, deploy_status string, parameters map[string]string) (resp map[string]interface{}, err error) {
 	targetURL := "http://api.tuisong.baidu.com/rest/3.0/push/single_device"
 	dic := make(map[string]string)
-	p.applyBaseParameters(dic)
 	dic["device_type"] = device_type
 	dic["msg_type"] = msg_type
 	dic["deploy_status"] = deploy_status
 	dic["channel_id"] = channel_id
 	dic["msg"] = util.BuildMessage(msg, parameters, device_type)
+	p.applyBaseParameters(dic)
 	dic["sign"] = util.GenerateSignature("POST", targetURL, p.secretKey, dic)
 	return postURL(targetURL, dic)
 }
 
-func (p *PushManager) PushToTag(device_type, tag, msg_type, msg, deploy_status string, parameters map[string]string) {
-
+func (p *PushManager) PushToTag(device_type, tag, msg_type, msg, deploy_status string, parameters map[string]string) (resp map[string]interface{}, err error) {
+	targetURL := "http://api.tuisong.baidu.com/rest/3.0/push/tags"
+	dic := make(map[string]string)
+	dic["type"] = "1"
+	dic["device_type"] = device_type
+	dic["tag"] = tag
+	dic["msg_type"] = msg_type
+	dic["deploy_status"] = deploy_status
+	dic["msg"] = util.BuildMessage(msg, parameters, device_type)
+	p.applyBaseParameters(dic)
+	dic["sign"] = util.GenerateSignature("POST", targetURL, p.secretKey, dic)
+	return postURL(targetURL, dic)
 }
 
 func (p *PushManager) PushToBatchDevices(device_type, channel_ids []string, msg_type, msg, topicId string, parameters map[string]string) {
@@ -136,7 +144,7 @@ func (p *PushManager) QueryTopicStatistic(topicId string) {
 
 }
 
-func postURL(urlString string, dic map[string]string) (resp map[string]interface{}, err error) {
+func postURL(targetURL string, dic map[string]string) (resp map[string]interface{}, err error) {
 	form := url.Values{}
 	for k, v := range dic {
 		form.Set(k, v)
@@ -147,7 +155,7 @@ func postURL(urlString string, dic map[string]string) (resp map[string]interface
 		log.Println(err.Error())
 		return
 	}
-	req.Header.Add("User-Agent", p.userAgent)
+	req.Header.Add("User-Agent", config.USERAGENT)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
 	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
 
