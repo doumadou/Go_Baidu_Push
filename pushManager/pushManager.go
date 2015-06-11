@@ -92,8 +92,17 @@ func (p *PushManager) PushToBatchDevices(device_type, msg_type, msg, topicId str
 	return postURL(targetURL, dic)
 }
 
-func (p *PushManager) QueryMsgStatus(msgIds []string) {
-
+func (p *PushManager) QueryMsgStatus(msgIds []string) (resp map[string]interface{}, err error) {
+	targetURL := "http://api.tuisong.baidu.com/rest/3.0/report/query_msg_status"
+	dic := make(map[string]string)
+	ids, err := json.Marshal(&msgIds)
+	if err != nil {
+		return
+	}
+	dic["msg_id"] = string(ids)
+	p.applyBaseParameters(dic)
+	dic["sign"] = util.GenerateSignature("POST", targetURL, p.secretKey, dic)
+	return postURL(targetURL, dic)
 }
 
 func (p *PushManager) QueryTimerRecords(timerId, start, limit, rangeStart, rangeEnd string) {
