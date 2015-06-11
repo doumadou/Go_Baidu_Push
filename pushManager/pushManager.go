@@ -127,8 +127,26 @@ func (p *PushManager) QueryTimerRecords(timerId, start, limit, rangeStart, range
 	return postURL(targetURL, dic)
 }
 
-func (p *PushManager) QueryTopicRecords(topicId, start, limit, rangeStart, rangeEnd string) {
+func (p *PushManager) QueryTopicRecords(topicId, start, limit, rangeStart, rangeEnd string) (resp map[string]interface{}, err error) {
+	targetURL := "http://api.tuisong.baidu.com/rest/3.0/report/query_topic_records"
+	dic := make(map[string]string)
+	dic["topic_id"] = topicId
+	if start != "" {
+		dic["start"] = start
+	}
+	if limit != "" {
+		dic["limit"] = limit
+	}
+	if rangeStart != "" {
+		dic["rangeStart"] = rangeStart
+	}
+	if rangeEnd != "" {
+		dic["rangeEnd"] = rangeEnd
+	}
 
+	p.applyBaseParameters(dic)
+	dic["sign"] = util.GenerateSignature("POST", targetURL, p.secretKey, dic)
+	return postURL(targetURL, dic)
 }
 
 func (p *PushManager) QueryTagDetails(tag string) {
