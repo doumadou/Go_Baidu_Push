@@ -23,23 +23,25 @@ type PushManager struct {
 	userAgent string
 }
 
-func applyBaseParameters(map[string]string) {
+func (p *PushManager) applyBaseParameters(parameters map[string]string) {
+	parameters["apikey"] = p.apiKey
+	parameters["timestamp"] = strconv.FormatInt(time.Now().Unix(), 10)
+}
+
+func (p *PushManager) PushToAll(msg_type, msg, deploy_status string, parameters *map[string]string) {
+	parameters["device_type"] = "3"
+	parameters["msg_type"] = msg_type
+}
+
+func (p *PushManager) PushToSingle(channel_id, msg_type, msg, deploy_status string, parameters *map[string]string) {
 
 }
 
-func (p *PushManager) PushToAll(msg_type, msg, deploy_status string) {
+func (p *PushManager) PushToTag(tag, msg_type, msg, deploy_status string, parameters *map[string]string) {
 
 }
 
-func (p *PushManager) PushToSingle(channel_id, msg_type, msg, deploy_status string) {
-
-}
-
-func (p *PushManager) PushToTag(tag, msg_type, msg, deploy_status string) {
-
-}
-
-func (p *PushManager) PushToBatchDevices(channel_ids []string, msg_type, msg, topicId string) {
+func (p *PushManager) PushToBatchDevices(channel_ids []string, msg_type, msg, topicId string, parameters *map[string]string) {
 
 }
 

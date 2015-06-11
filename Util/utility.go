@@ -32,7 +32,7 @@ func GenerateSignature(method string, urlStr string, secretkey string, parameter
 	return ToMd5(url.QueryEscape(finalstring))
 }
 
-func BuildMessage(messages string, parameters map[string]string, deviceType string) string {
+func BuildMessage(messages string, parameters *map[string]string, deviceType string) string {
 	var finalMsg string
 	switch {
 	case deviceType == "iOS":
@@ -43,9 +43,12 @@ func BuildMessage(messages string, parameters map[string]string, deviceType stri
 	return finalMsg
 }
 
-func BuildAndroidMessage(message string, parameters map[string]string) string {
-	dic := make(map[string]string)
+func BuildAndroidMessage(message string, parameters *map[string]string) string {
+	dic := make(map[string]interface{})
 	dic["description"] = message
+	if	parameters != nil {
+		dic["custom_content"] = parameters
+	}
 	jsonString, err := json.Marshal(&dic)
 	if err != nil {
 		log.Println(err.Error())
@@ -56,12 +59,18 @@ func BuildAndroidMessage(message string, parameters map[string]string) string {
 	return string(jsonString)
 }
 
-func BuildIOSMessage(message string, parameters map[string]string) string {
+func BuildIOSMessage(message string, parameters *map[string]string) string {
 	dic := make(map[string]interface{})
 	aps := make(map[string]string)
 	aps["alert"] = message
 	aps["badge"] = "1"
 	dic["aps"] = aps
+	if	parameters != nil {
+		for k,v := range parameters {
+			dic[k] = v
+		}
+	}
+
 	jsonString, err := json.Marshal(&dic)
 	if err != nil {
 		log.Println(err.Error())
