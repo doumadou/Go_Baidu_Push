@@ -31,3 +31,43 @@ func GenerateSignature(method string, urlStr string, secretkey string, parameter
 	log.Println(finalstring)
 	return ToMd5(url.QueryEscape(finalstring))
 }
+
+func BuildMessage(messages string, parameters map[string]string, deviceType string) string {
+	var finalMsg string
+	switch {
+	case deviceType == "iOS":
+		finalMsg = BuildIOSMessage(messages, parameters)
+	case deviceType == "Android":
+		finalMsg = BuildAndroidMessage(messages, parameters)
+	}
+	return finalMsg
+}
+
+func BuildAndroidMessage(message string, parameters map[string]string) string {
+	dic := make(map[string]string)
+	dic["description"] = message
+	jsonString, err := json.Marshal(&dic)
+	if err != nil {
+		log.Println(err.Error())
+		return ""
+	}
+	log.Println(string(jsonString))
+
+	return string(jsonString)
+}
+
+func BuildIOSMessage(message string, parameters map[string]string) string {
+	dic := make(map[string]interface{})
+	aps := make(map[string]string)
+	aps["alert"] = message
+	aps["badge"] = "1"
+	dic["aps"] = aps
+	jsonString, err := json.Marshal(&dic)
+	if err != nil {
+		log.Println(err.Error())
+		return ""
+	}
+	log.Println(string(jsonString))
+	return string(jsonString)
+}
+
