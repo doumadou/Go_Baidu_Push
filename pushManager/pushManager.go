@@ -76,8 +76,20 @@ func (p *PushManager) PushToTag(device_type, tag, msg_type, msg, deploy_status s
 	return postURL(targetURL, dic)
 }
 
-func (p *PushManager) PushToBatchDevices(device_type, channel_ids []string, msg_type, msg, topicId string, parameters map[string]string) {
-
+func (p *PushManager) PushToBatchDevices(device_type, msg_type, msg, topicId string, channel_ids []string, parameters map[string]string) (resp map[string]interface{}, err error) {
+	targetURL := "http://api.tuisong.baidu.com/rest/3.0/push/batch_device"
+	dic := make(map[string]string)
+	channels, err := json.Marshal(&channel_ids)
+	if err != nil {
+		return
+	}
+	dic["channel_ids"] = string(channels)
+	dic["device_type"] = device_type
+	dic["msg_type"] = msg_type
+	dic["msg"] = util.BuildMessage(msg, parameters, device_type)
+	p.applyBaseParameters(dic)
+	dic["sign"] = util.GenerateSignature("POST", targetURL, p.secretKey, dic)
+	return postURL(targetURL, dic)
 }
 
 func (p *PushManager) QueryMsgStatus(msgIds []string) {
