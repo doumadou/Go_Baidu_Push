@@ -127,7 +127,7 @@ func (p *PushManager) QueryTimerRecords(timerId, start, limit, rangeStart, range
 	return postURL(targetURL, dic)
 }
 
-func (p *PushManager) QueryTopicDetails(start, limit, rangeStart, rangeEnd string) (resp map[string]interface{}, err error) {
+func (p *PushManager) QueryTopicDetails(start, limit, rangeStart, rangeEnd, topicId string) (resp map[string]interface{}, err error) {
 	targetURL := "http://api.tuisong.baidu.com/rest/3.0/report/query_topic_records"
 	dic := make(map[string]string)
 	dic["topic_id"] = topicId

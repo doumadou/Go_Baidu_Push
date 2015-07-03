@@ -47,6 +47,7 @@ func BuildMessage(messages string, parameters map[string]string, deviceType stri
 func BuildAndroidMessage(message string, parameters map[string]string) string {
 	dic := make(map[string]interface{})
 	dic["description"] = message
+	dic["notification_basic_style"] = "7"
 	if parameters != nil {
 		dic["custom_content"] = parameters
 	}
@@ -65,6 +66,7 @@ func BuildIOSMessage(message string, parameters map[string]string) string {
 	aps := make(map[string]string)
 	aps["alert"] = message
 	aps["badge"] = "1"
+	aps["sound"] = "Default"
 	dic["aps"] = aps
 	if parameters != nil {
 		for k, v := range parameters {
