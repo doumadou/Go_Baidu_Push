@@ -33,24 +33,27 @@ func GenerateSignature(method string, urlStr string, secretkey string, parameter
 	return ToMd5(url.QueryEscape(finalstring))
 }
 
-func BuildMessage(messages string, parameters map[string]string, deviceType string) string {
+func BuildMessage(title string, messages string, parameters map[string]interface{}, deviceType string) string {
 	var finalMsg string
 	switch {
 	case deviceType == "4":
 		finalMsg = BuildIOSMessage(messages, parameters)
 	case deviceType == "3":
-		finalMsg = BuildAndroidMessage(messages, parameters)
+		finalMsg = BuildAndroidMessage(title, messages, parameters)
 	}
 	return finalMsg
 }
 
-func BuildAndroidMessage(message string, parameters map[string]string) string {
+func BuildAndroidMessage(title string, message string, parameters map[string]interface{}) string {
 	dic := make(map[string]interface{})
 	dic["description"] = message
+	dic["title"] = title
 	dic["notification_basic_style"] = "7"
 	if parameters != nil {
 		dic["custom_content"] = parameters
 	}
+
+
 	jsonString, err := json.Marshal(&dic)
 	if err != nil {
 		log.Println(err.Error())
@@ -61,18 +64,18 @@ func BuildAndroidMessage(message string, parameters map[string]string) string {
 	return string(jsonString)
 }
 
-func BuildIOSMessage(message string, parameters map[string]string) string {
-	dic := make(map[string]interface{})
-	aps := make(map[string]string)
-	aps["alert"] = message
-	aps["badge"] = "1"
-	aps["sound"] = "Default"
-	dic["aps"] = aps
-	if parameters != nil {
-		for k, v := range parameters {
-			dic[k] = v
-		}
-	}
+func BuildIOSMessage(message string, parameters map[string]interface{}) string {
+	dic := make(map[string]string)
+	//aps := make(map[string]string)
+	//aps["alert"] = message
+	//aps["badge"] = "1"
+	//aps["sound"] = "Default"
+	//dic["aps"] = aps
+	//if parameters != nil {
+	//	for k, v := range parameters {
+	//		dic[k] = v
+	//	}
+	//}
 
 	jsonString, err := json.Marshal(&dic)
 	if err != nil {
